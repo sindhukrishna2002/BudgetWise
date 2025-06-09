@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BudgetWise - AI Budgeting Assistant</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+    body {
+      margin: 0;
+      background: #f0f4f8;
+      color: #333;
+    }
+    header {
+      background: #0077b6;
+      color: white;
+      padding: 1rem 2rem;
+      text-align: center;
+    }
+    header h1 {
+      margin: 0;
+    }
+    nav {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin: 1rem 0;
+    }
+    nav button {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      background: #48cae4;
+      color: white;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    nav button:hover {
+      background: #00b4d8;
+    }
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+    .section {
+      display: none;
+    }
+    .active {
+      display: block;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 0.75rem;
+      margin-top: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    button.action {
+      margin-top: 1rem;
+      background: #023e8a;
+    }
+    .result {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: #e0f7fa;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>BudgetWise</h1>
+    <p>Your AI-powered personal finance assistant</p>
+  </header>
+
+  <nav>
+    <button onclick="show('home')">Home</button>
+    <button onclick="show('budget')">Budget Tips</button>
+    <button onclick="show('spending')">Spending Analysis</button>
+    <button onclick="show('chatbot')">AI Chatbot</button>
+  </nav>
+
+  <div class="container">
+    <div id="home" class="section active">
+      <h2>Welcome</h2>
+      <p>Select any feature from above to get started with smart financial planning.</p>
+    </div>
+
+    <div id="budget" class="section">
+      <h2>Budget Tips</h2>
+      <input type="text" id="incomeInput" placeholder="Enter your monthly income (INR)" />
+      <button class="action" onclick="generateBudget()">Generate Budget</button>
+      <div id="budgetResult" class="result"></div>
+    </div>
+
+    <div id="spending" class="section">
+      <h2>Spending Analysis</h2>
+      <input type="text" id="expenseInput" placeholder="Enter your monthly expense details" />
+      <button class="action" onclick="analyzeSpending()">Analyze Spending</button>
+      <div id="spendingResult" class="result"></div>
+    </div>
+
+    <div id="chatbot" class="section">
+      <h2>Ask Our AI Chatbot</h2>
+      <textarea id="chatInput" rows="3" placeholder="Ask a financial question..."></textarea>
+      <button class="action" onclick="generateChatbotResponse()">Ask</button>
+      <div id="chatbotResponse" class="result"></div>
+    </div>
+  </div>
+
+  <script>
+    const GEMINI_API_KEY = "AIzaSyDZSySAldX61yMbeHkVTbZkK0VsBoQ0Vh0";
+
+    async function callGemini(prompt) {
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+        }
+      );
+      const data = await res.json();
+      try {
+        return data.candidates[0].content.parts[0].text;
+      } catch {
+        return "AI failed to respond. Please try again.";
+      }
+    }
+
+    function show(id) {
+      document.querySelectorAll(".section").forEach(sec => sec.classList.remove("active"));
+      document.getElementById(id).classList.add("active");
+    }
+
+    async function generateBudget() {
+      const income = document.getElementById("incomeInput").value;
+      const result = await callGemini(`Create a monthly budget for someone earning ${income} INR.`);
+      document.getElementById("budgetResult").innerText = result;
+    }
+
+    async function analyzeSpending() {
+      const expense = document.getElementById("expenseInput").value;
+      const result = await callGemini(`Analyze this monthly expense: ${expense} INR. Provide insights and saving suggestions.`);
+      document.getElementById("spendingResult").innerText = result;
+    }
+
+    async function generateChatbotResponse() {
+      const question = document.getElementById("chatInput").value;
+      document.getElementById("chatbotResponse").innerText = "Thinking...";
+      const response = await callGemini(question);
+      document.getElementById("chatbotResponse").innerText = response;
+    }
+  </script>
+</body>
+</html>
